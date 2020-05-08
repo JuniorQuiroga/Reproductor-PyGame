@@ -1,0 +1,75 @@
+#necesario para reproducir
+from pygame import mixer
+#interfaz
+
+from tkinter import *
+from tkinter import filedialog
+from tkinter import messagebox
+#variables globales
+indicador = 0
+ruta = ""
+root = Tk()
+#iniciar mixer
+mixer.init()
+#config. Tkinter
+root.geometry("200x105")
+###########################################
+#clase para almacenar funciones de botones#
+###########################################
+class Buttons():
+#detener
+def stop():
+global indicador
+mixer.music.stop()
+indicador = 0
+print("salida st",indicador )
+
+#pausar/despausar/reproducir
+def pause_play():
+global ruta
+global indicador
+
+print("in pause",indicador )
+if indicador ==0:
+print("entra")
+try:
+print("entra")
+#carga y reproduce la ruta cargada
+mixer.music.load(ruta)
+mixer.music.play()
+#habilita la posibilidad de pausar
+indicador=1
+#sino muestra un mensaje de error
+except Exception as i:
+messagebox.showerror(title="Error", message="Ningun archivo
+seleccionado\nError: "+str(i))
+
+indicador=0
+#si indicador es 1 entonces pausa sino reproduce
+elif indicador ==1:
+print("entra pause")
+mixer.music.pause()
+#habilita la posibilidad de reproduccion
+indicador = -1
+elif indicador==-1:
+print("entra unpause")
+mixer.music.unpause()
+#habilita la posibilidad de pausar
+indicador=1
+
+def search():
+global ruta
+global indicador
+#inicia un bloque de dialogo para buscar un archivo y luego guarda la ruta
+ruta = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("mp3
+files","*.mp3"),("wav files","*.wav"),("all files","*.*")))
+#reproduce automaticamente
+indicador =0
+Buttons.pause_play()
+
+#########
+#BOTONES#
+#########
+pause_play = Button(root,text="||", command=Buttons.pause_play).pack()
+stop = Button(root,text="B", command=Buttons.stop).pack()
+search = Button(root,text="S",command=Buttons.search).pack()
