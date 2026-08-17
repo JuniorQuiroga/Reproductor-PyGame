@@ -19,3 +19,6 @@ Crafted under tigh deadlines, lack of sleep and incredible amounts of scope cree
 
 - v2.0
 ![App v2.0 Screenshot](Screenshots/mp3_player_pygame_2.0.png)
+
+- v2.1
+![App v2.1 Screenshot](Screenshots/mp3_player_pygame_2.1.png)

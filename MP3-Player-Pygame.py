@@ -1,250 +1,202 @@
-"""
-es necesario
-    -pygame
-    -threading
-"""
-
-#necesario para reproducir
+# necesario para reproducir
 from pygame import mixer
 import pygame
 import threading
 
-#interfaz
+# interfaz
 from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
 
 import webbrowser
 
-#variables globales
-reset =True
-val = 0
-reproduciendo=False
-rutaNueva = ""
-rutaAnterior="anterior"
+# variables globales
+playlist_playing = False
+song_playing = False
+ruta_nueva = ""
+ruta_anterior=""
 root = Tk()
-lista_de_reproduccion= []
-contador_lista=0
+playlist_songs= []
 
-#iniciar mixer
+# iniciar mixer
 mixer.init()
 pygame.display.init()
 
-#config. Tkinter
+# config Tkinter
 root.geometry("520x280")
+root.title("MP3 Player PyGame")
 
-#hilos de procesamiento
+# hilos de procesamiento
 threads = []
 
+def play_song(path):
+    global song_playing
+    mixer.music.load(path)
+    mixer.music.play()
+    song_playing=True
 
-##################
-#AREA DE PROCESOS#
-##################
+# detener
+def stop_song():
+    global playlist_playing
+    global ruta_anterior
+    mixer.music.stop()
+    playlist_playing = False
+    ruta_anterior=""
 
-class Buttons:
-    #detener
-    def stop():
-        global val
-        global rutaAnterior
-        mixer.music.stop()
-        val = 0
-        rutaAnterior="anterior"
-        
-    #pausar/despausar/reproducir
-    def pause_play():
-        global rutaAnterior
-        global val
-        global reproduciendo
-        
-        
-        if val ==0:
-            if rutaAnterior != Historial.get("anchor"):
-                try:
-                    rutaNueva = Historial.get("anchor")
-                    mixer.music.load(rutaNueva)
-                    mixer.music.play()
-                    
-                    #habilita la posibilidad de pausar
-                    reproduciendo=True
-                    rutaAnterior=rutaNueva
-                
-                #sino muestra un mensaje de error
-                except Exception as i:
-                    messagebox.showerror(title="Error", message="Ningun archivo seleccionado\nError: "+str(i))
-                    val=0
-        
-            #reproduce
-            elif reproduciendo==False:
-                mixer.music.unpause()
-                reproduciendo = True
+# pausar/despausar/reproducir
+def play_pause_song():
+    global ruta_anterior
+    global playlist_playing
+    global song_playing
 
-            #pausa
-            elif reproduciendo==True:
-                mixer.music.pause()
-                reproduciendo = False
-            
-    def search():
-    
-        #inicia un bloque de dialogo para buscar un archivo y luego guarda la ruta
-        rutaNueva =  filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("mp3 files","*.mp3"),("wav files","*.wav"),("all files","*.*")))
+    if playlist_playing == False:
+        if ruta_anterior != added_songs_ui.get("anchor"):
+            try:
+                ruta_nueva = added_songs_ui.get("anchor")
+                play_song(ruta_nueva)
 
-        #agrega la cancion al historial
-        if rutaNueva!="":
-            Historial.insert(END,rutaNueva)
+                ruta_anterior=ruta_nueva
 
+            # sino muestra un mensaje de error
+            except Exception as i:
+                messagebox.showerror(title="Error", message="Ningun archivo seleccionado\nError: "+str(i))
+                playlist_playing = False
 
-    def BuscaVideo():##nueva funcion en fase beta para acceder al buscador de youtube(Escobar)
-         #entra al buscador de youtube
-         #inicio de navegador
-         webbrowser.open("https://www.youtube.com/",new=2, autoraise=True)
-         #Simplemente ingresa a youtube para darle mas variedad al usuario, o tambien puede utilizarlo para descargar archivos de audio.
-       
-    ##Esta funcion servira de guia para el usuario a la hora de realizar una descarga y conversion de video.
-    def Descargar():##Funcion de instrucciones de descarga.
-        messagebox.showinfo(message="Primero clickee su video, omita los anuncios y luego por favor copie la URL del video(es la que esta en la parte superior de la pestaña del navegador, tambien puede seleccionar todo y utilizar el comando CTRL+C para copiar la URL, Confirme con un (si o no) despues del ""OK"" para ayudarlo en el siguiente paso",title="Ayuda de Descarga")
-        Confirmador=messagebox.askyesno(message="¿Lo logro?", title="Confirmacion")##Confirma entendimiento y exito del usuario a la hora de seguir las instrucciones
-       
-        if(Confirmador== True):
-            webbrowser.open("www.example.com",new=2, autoraise=True)
- 
-            messagebox.showinfo(message="Ahora esta en la pagina del convertidor, debe pegar la URL que ya copio del video que selecciono lo puede hacer con el comando CTRL+V, luego puede elegir en las opciones el formato de conversion, luego clickee convertir a y Confirme con un (si o no) despues del ""OK"" para ayudarlo en el siguiente paso,", title="Conversion")
-  
-
-            Confirmador=messagebox.askyesno(message="¿Lo logro?", title="Confirmacion")      ##Confirma entendimiento y exito del usuario a la hora de seguir las instrucciones
-      
-
-            if(Confirmador==True):
-  
-                messagebox.showinfo(message="Ya esta en la parte final del procedimiento, tiene que clickear en descargar y cerrar los anuncios que aparezcan, luego de eso podra ver en la parte inferior el archivo de video convertido en el formato deseado, y tocando la flechita que apunta arriba(la que esta a la derecha del archivo) y seleccionando: ""mostrar en carpeta.., podra ver la ruta donde guardo el archivo, para luego poder reproducirlo con el reproductor.",title="Final del Procedimiento")
-
-
-        
-class Lista:
-    
-    #agrega una cancion a la lista
-    def listAdd():
-        global lista_de_reproduccion
-        cont=0
-        rutaSeleccionada=Historial.get("anchor")
-        if rutaSeleccionada != "":
-            for rutaExistente in lista_de_reproduccion:
-                if rutaSeleccionada == rutaExistente: cont+=1
-            if cont==0:
-                lista_de_reproduccion.append(rutaSeleccionada)
-                """añade la ruta a la lista visible"""
-                Lista_reproduccion.insert(END,rutaSeleccionada)
-
-    #remueve una cancion a la lista
-    def listRemove():
-        global lista_de_reproduccion
-        indiceSeleccionado = lista_de_reproduccion.index(Lista_reproduccion.get(Lista_reproduccion.curselection()))
-        #lo borra de la lista visible
-        Lista_reproduccion.delete(indiceSeleccionado)
-        #lo borra de la lista interna
-        lista_de_reproduccion.pop(indiceSeleccionado)
-
-    ######################
-    #HILO DE REPRODUCCION#
-    ######################
-    def Play_Thread():
-        global lista_de_reproduccion
-        global contador_lista
-        global reproduciendo
-        global val
-        global threads
-
-        #copia la lista a una lista auxiliar
-        aux=lista_de_reproduccion.copy()
-        aux.reverse()
-        reproduciendo =False
-        
-        if reproduciendo==False:
-            #se verifica si la lista tiene mas de una cancion
-            
-                
-            if len(aux)>1 :
-                mixer.music.load ( aux.pop() )  #carga y reproduce el primer tema
-                mixer.music.set_endevent ( pygame.USEREVENT ) #configura el evento de finalizado
-                mixer.music.play()
-                reproduciendo = True
-                
-                val=1
-                
-                while reproduciendo:
-                    for event in pygame.event.get():
-                        #verifica el evento de finalizado
-                        if event.type == 24: 
-                            #verifica que hayan mas canciones
-                            if len ( aux ) > 0:
-                                mixer.music.load ( aux.pop() ) 
-                                mixer.music.play()
-                                                    
-                            #detiene la reproduccion
-                            else:
-                                reproduciendo = False
-            else:
-                print("ulti")
-                if len(lista_de_reproduccion)>0:
-                    mixer.music.load(lista_de_reproduccion[0])
-                    mixer.music.play()
-                    reproduciendo = True
-                    val=1
-
-            
-    def reset():
-        global threads
-    
-        t = threading.Thread(target=Lista.Play_Thread,args=())
-        threads.append(t)
-        t.start()
-
-        
-    #reproduce y pausa la cancion
-    def pause_play():
-        global lista_de_reproduccion
-        global contador_lista
-        global reproduciendo
-        global val
-
-        if val == 0:
+        # reproduce
+        elif song_playing==False:
             mixer.music.unpause()
-            reproduciendo = True
-            val=1
-    
-        elif val==1:
+            song_playing = True
+
+        # pausa
+        elif song_playing==True:
             mixer.music.pause()
-            reproduciendo = False
-            val = 0
+            song_playing = False
+
+def add_song():
+    # inicia un bloque de dialogo para buscar un archivo y luego guarda la ruta
+    ruta_nueva =  filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("mp3 files","*.mp3"),("wav files","*.wav"),("all files","*.*")))
+
+    # agrega la cancion al historial "added_songs_ui"
+    if ruta_nueva != "":
+        added_songs_ui.insert(END,ruta_nueva)
+
+# nueva funcion en fase beta para acceder al buscador de youtube (Escobar)
+def busca_video():
+        # entra al buscador de youtube
+        # inicio de navegador
+        webbrowser.open("https://www.youtube.com/",new=2, autoraise=True)
+        # Simplemente ingresa a youtube para darle mas variedad al usuario, o tambien puede utilizarlo para descargar archivos de audio.
+
+        
+# agrega una cancion a la lista
+def add_to_playlist():
+    global playlist_songs
+    cont=0
+    rutaSeleccionada=added_songs_ui.get("anchor")
+    if rutaSeleccionada != "":
+        for rutaExistente in playlist_songs:
+            if rutaSeleccionada == rutaExistente: cont+=1
+        if cont==0:
+            playlist_songs.append(rutaSeleccionada)
+            # añade la ruta a la lista visible
+            playlist_songs_ui.insert(END,rutaSeleccionada)
+
+# remueve una cancion a la lista
+def remove_from_playlist():
+    global playlist_songs
+    indiceSeleccionado = playlist_songs.index(playlist_songs_ui.get(playlist_songs_ui.curselection()))
+    # lo borra de la lista visible
+    playlist_songs_ui.delete(indiceSeleccionado)
+    # lo borra de la lista interna
+    playlist_songs.pop(indiceSeleccionado)
+
+# reproduce y pausa la cancion
+def play_pause_playlist():
+    global playlist_songs
+    global song_playing
+    global playlist_playing
+
+    if playlist_playing == False:
+        mixer.music.unpause()
+        song_playing = True
+        playlist_playing = True
+
+    elif playlist_playing == True:
+        mixer.music.pause()
+        song_playing = False
+        playlist_playing = False
+
+################
+#PLAYLIST LOGIC#
+################
+def start_playlist():
+    global playlist_songs
+    global song_playing
+    global playlist_playing
+
+    # copia la lista a una lista auxiliar
+    aux = playlist_songs.copy()
+    aux.reverse()
+    song_playing = False
+    
+    # se verifica si la lista tiene mas de una cancion
+    if len(aux)>1:
+        # configura el evento de finalizado
+        mixer.music.set_endevent ( pygame.USEREVENT ) 
+        
+        # carga y reproduce el primer tema
+        play_song(aux.pop())
+        playlist_playing = True
+
+        while song_playing:
+            for event in pygame.event.get():
+                # verifica el evento de finalizado
+                if event.type == 24 or event.type == 32866:
+                    # verifica que hayan mas canciones
+                    if len ( aux ) > 0:
+                        play_song(aux.pop())
+
+                    # detiene la reproduccion
+                    else:
+                        song_playing = False
+    else:
+        if len(aux)>0:
+            play_song(aux[0])
+            playlist_playing = True
+                
+def reset_playlist():
+    global threads
+
+    thread = threading.Thread(target=start_playlist,args=())
+    threads.append(thread)
+    thread.start()
+
 
 ######################
 #AREA DE PRESENTACION#
 ######################
-Label(root,text="historial de canciones").grid(row=0,column=0)
-Historial = Listbox(root,width=40)
-Historial.grid(row =1,column=0)
+if __name__=='__main__':
+    Label(root,text="Songs").grid(row=0,column=0)
+    added_songs_ui = Listbox(root,width=40)
+    added_songs_ui.grid(row =1,column=0)
 
-Label(root,text="Lista de reproduccion").grid(row=0,column=2)
-Lista_reproduccion = Listbox(root,width=40)
-Lista_reproduccion.grid(row =1,column=2)
+    Label(root,text="Playlist").grid(row=0,column=2)
+    playlist_songs_ui = Listbox(root,width=40)
+    playlist_songs_ui.grid(row =1,column=2)
 
 
-"""Botones basicos"""
-pause_play = Button(root,text="Play/Pause", command=Buttons.pause_play).grid(row =2,column=0,sticky=W,padx=15)
+    """Botones basicos"""
+    Button(root,text="Play/Pause", command=play_pause_song).grid(row =2,column=0,sticky=W,padx=15)
+    Button(root,text="Stop", command=stop_song).grid(row =2,column=0,ipadx=21)
+    Button(root,text="Add",command=add_song).grid(row =2,column=0,sticky=E,padx=15,ipadx=12)
 
-stop = Button(root,text="Stop", command=Buttons.stop).grid(row =2,column=0,ipadx=21)
+    """Botones lista de reproduccion"""
+    Button(root,text="+1",command=add_to_playlist).grid(row =2,column=2,sticky=W,padx=10)
+    Button(root,text="-1",command=remove_from_playlist).grid(row =2,column=2,sticky=W,padx=40,ipadx=1)
+    Button(root,text="Play/Reset",command=reset_playlist).grid(row =2,column=2,sticky=W,padx=70)
+    Button(root,text="Play/Pause",command=play_pause_playlist).grid(row =2,column=2,sticky=E,padx=40)
 
-search = Button(root,text="Buscar",command=Buttons.search).grid(row =2,column=0,sticky=E,padx=15,ipadx=12)
+    # nuevo boton para acceder al navegador, para que el usuario pueda ver videos, musica. (Escobar)
+    Button(root,text="Search online",command=busca_video).grid(row=4 ,column=0) 
 
-"""Botones lista de reproduccion"""
-Button(root,text="+1",command=Lista.listAdd).grid(row =2,column=2,sticky=W,padx=10)
-Button(root,text="-1",command=Lista.listRemove).grid(row =2,column=2,sticky=W,padx=40,ipadx=1)
-
-Button(root,text="Play/Reset",command=Lista.reset).grid(row =2,column=2,sticky=W,padx=70)
-
-Button(root,text="Pause",command=Lista.pause_play).grid(row =2,column=2,sticky=E,padx=40)
-
-Internet=Button(root,text="Buscar mas musica o Videos",command=Buttons.BuscaVideo).grid(row=4 ,column=0) # nuevo boton para acceder al navegador, para que el usuario pueda ver videos, musica, y tambien pueda descargar musica siguiendo las instrucciones del siguiente boton(Escobar)
-
-Descargar=Button(root,text="Explicacion de descarga",command=Buttons.Descargar).grid(row=5 ,column=0)#Introduccion al usuario para que sepa como convertir y descargar videos
-
-root.mainloop()
+    root.mainloop()
