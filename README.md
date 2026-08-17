@@ -8,8 +8,14 @@ Crafted under tigh deadlines, lack of sleep and incredible amounts of scope cree
 
 - Import MP3 and WAV files.
 - Play, pause, and stop audio controls.
+- Add or remove songs from a custom playlist.
+- Sequential playlist playback.
+- Search for more songs.
 
 ## Screenshots
 
 v1.0
 ![App Screenshot](Screenshots/mp3_player_pygame_1.0.png)
+
+v2.0
+![App Screenshot](Screenshots/mp3_player_pygame_2.0.png)
